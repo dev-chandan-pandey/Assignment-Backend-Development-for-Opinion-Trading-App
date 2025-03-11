@@ -1,0 +1,17 @@
+/* Add this to globals.css */
+/* @media (max-width: 768px) {
+    .sidebar {
+      width: 100%;
+    }
+  } */
+  @tailwind base;
+  @tailwind components;
+  @tailwind utilities;
+
+  
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 100%;
+    }
+  }
+  
