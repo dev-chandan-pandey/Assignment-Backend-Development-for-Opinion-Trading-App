@@ -47,7 +47,8 @@ const LayoutContainer = styled.div`
 
 const Content = styled.div`
   flex: 1;
-  padding: 20px;
+  padding:0px;
+  margin:0px; 
 `;
 
 export default function Layout({ children }) {

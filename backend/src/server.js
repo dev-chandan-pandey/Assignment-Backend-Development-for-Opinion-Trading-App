@@ -115,7 +115,7 @@ app.use((req, res, next) => {
     logger.info(`${req.method} ${req.url}`);
     next();
 });
-
+// app.use(errorHandler);
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
@@ -126,42 +126,77 @@ app.get('/', (req, res) => {
 });
 
 // Scheduled Tasks
-setInterval(fetchLiveSportsData, 60 * 1000); // Fetch sports data every 1 minute
-setInterval(settleTrades, 2 * 60 * 1000); // Settle trades every 2 minutes
+//setInterval(fetchLiveSportsData, 60 * 1000); // Fetch sports data every 1 minute
+//setInterval(settleTrades, 2 * 60 * 1000); // Settle trades every 2 minutes
 
 // WebSocket Logic
 const clientIntervals = {};
+const Trade = require('./models/Trade');
+// const Event = require('./models/Event');
+// io.on('connection', (socket) => {
+//     console.log('New WebSocket connection established');
 
-io.on('connection', (socket) => {
-    console.log('New WebSocket connection established');
+//     // Function to send live sports updates
+//     const sendLiveUpdates = async () => {
+//         try {
+//             const events = await Event.find().sort({ startTime: 1 });
+//             socket.emit('liveEvents', events);
+//         } catch (error) {
+//             console.error('Error fetching live events:', error);
+//         }
+//     };
 
-    // Function to send live sports updates
-    const sendLiveUpdates = async () => {
-        try {
-            const events = await Event.find().sort({ startTime: 1 });
-            socket.emit('liveEvents', events);
-        } catch (error) {
-            console.error('Error fetching live events:', error);
-        }
-    };
+//     sendLiveUpdates(); // Send initial data on connection
 
-    sendLiveUpdates(); // Send initial data on connection
+//     // Set up interval for live updates
+//     clientIntervals[socket.id] = setInterval(async () => {
+//         await fetchLiveSportsData();
+//         sendLiveUpdates();
+//     }, 60 * 1000);
 
-    // Set up interval for live updates
-    clientIntervals[socket.id] = setInterval(async () => {
-        await fetchLiveSportsData();
-        sendLiveUpdates();
-    }, 60 * 1000);
-
-    // Handle client disconnect
-    socket.on('disconnect', () => {
-        clearInterval(clientIntervals[socket.id]);
-        delete clientIntervals[socket.id];
-        console.log('WebSocket client disconnected');
-    });
-});
+//     // Handle client disconnect
+//     socket.on('disconnect', () => {
+//         clearInterval(clientIntervals[socket.id]);
+//         delete clientIntervals[socket.id];
+//         console.log('WebSocket client disconnected');
+//     });
+// });
 
 // MongoDB Connection
+// WebSocket Connection
+io.on('connection', (socket) => {
+    console.log('New client connected:', socket.id);
+  
+    // Send live events when a client connects
+    const sendLiveEvents = async () => {
+      const events = await Event.find().sort({ startTime: 1 });
+      socket.emit('liveEvents', events);
+    };
+  
+    // Send live trade updates
+    const sendLiveTrades = async () => {
+      const trades = await Trade.find().populate('user');
+      socket.emit('liveTrades', trades);
+    };
+  
+    sendLiveEvents();
+    sendLiveTrades();
+  
+    // Listen for disconnection
+    socket.on('disconnect', () => {
+      console.log('Client disconnected:', socket.id);
+    });
+  });
+  
+  // Broadcast updates when events or trades change
+  const broadcastUpdates = async () => {
+    io.emit('liveEvents', await Event.find().sort({ startTime: 1 }));
+    io.emit('liveTrades', await Trade.find().populate('user'));
+  };
+  
+  // Export WebSocket for use in other files
+  module.exports = { io, broadcastUpdates };
+  
 mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,

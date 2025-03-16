@@ -52,11 +52,11 @@ export async function placeTrade(eventId, amount, choice) {
   export async function fetchAllTrades() {
     try {
       const token = localStorage.getItem("token"); // Ensure admin is authenticated
-      const response = await fetch(`${API_BASE_URL}/admin/trades`, {
+      const response = await fetch(`http://localhost:5000/api/admin/trades`, {
         headers: { Authorization: `Bearer ${token}` },
       });
   
-      if (!response.ok) throw new Error("Failed to fetch trades");
+      // if (!response.ok) throw new Error("Failed to fetch trades");
       return await response.json();
     } catch (error) {
       console.error("Error fetching trades:", error);

@@ -1,270 +1,286 @@
-// import { useEffect, useState } from "react";
-// import { useRouter } from "next/router";
-// import { api } from "@/utils/api";
-
-// const AdminDashboard = () => {
-//   const [events, setEvents] = useState([]);
-//   const [trades, setTrades] = useState([]);
-//   const [newEvent, setNewEvent] = useState({ name: "", sport: "", odds: { home: 1.5, away: 2.0 }, startTime: "" });
-//   const router = useRouter();
-
-  
-//   useEffect(() => {
-//     const token = localStorage.getItem("token");
-//     if (!token) {
-//       router.push("/login");
-//       return;
-//     }
-
-//     useEffect(() => {
-//         const token = localStorage.getItem("token");
-//         const role = localStorage.getItem("role");
-      
-//         if (!token || role !== "admin") {
-//           router.push("/login");
-//         }
-//       }, []);
-      
-//     const fetchData = async () => {
-//       try {
-//         const { data: eventsData } = await api.get("/events", { headers: { Authorization: `Bearer ${token}` } });
-//         setEvents(eventsData);
-
-//         const { data: tradesData } = await api.get("/admin/trades", { headers: { Authorization: `Bearer ${token}` } });
-//         setTrades(tradesData);
-//       } catch (error) {
-//         console.error("Error fetching admin data:", error);
-//       }
-//     };
-
-//     fetchData();
-//   }, []);
-
-//   const handleCreateEvent = async () => {
-//     try {
-//       const token = localStorage.getItem("token");
-//       await api.post("/admin/events", newEvent, { headers: { Authorization: `Bearer ${token}` } });
-//       alert("Event created!");
-//       setNewEvent({ name: "", sport: "", odds: { home: 1.5, away: 2.0 }, startTime: "" });
-//     } catch (error) {
-//       alert("Failed to create event.");
-//     }
-//   };
-
-//   return (
-//     <div className="p-6">
-//       <h1 className="text-2xl font-bold mb-4">Admin Panel</h1>
-
-//       {/* Create Event */}
-//       <div className="p-4 border rounded shadow mb-6">
-//         <h2 className="text-lg font-bold">Create New Event</h2>
-//         <input type="text" placeholder="Event Name" className="w-full p-2 mb-2 border rounded"
-//           value={newEvent.name} onChange={(e) => setNewEvent({ ...newEvent, name: e.target.value })} />
-//         <input type="text" placeholder="Sport Type" className="w-full p-2 mb-2 border rounded"
-//           value={newEvent.sport} onChange={(e) => setNewEvent({ ...newEvent, sport: e.target.value })} />
-//         <input type="datetime-local" className="w-full p-2 mb-2 border rounded"
-//           value={newEvent.startTime} onChange={(e) => setNewEvent({ ...newEvent, startTime: e.target.value })} />
-//         <button onClick={handleCreateEvent} className="w-full bg-blue-500 text-white p-2 rounded">Create Event</button>
-//       </div>
-
-//       {/* Events List */}
-//       <h2 className="text-xl font-semibold mt-6">Live Events</h2>
-//       <ul className="space-y-2">
-//         {events.map((event) => (
-//           <li key={event.eventId} className="border p-4 rounded shadow">
-//             <h2 className="text-lg font-semibold">{event.name}</h2>
-//             <p>Sport: {event.sport}</p>
-//             <p>Odds: {event.odds.home} / {event.odds.away}</p>
-//             <p>Start Time: {new Date(event.startTime).toLocaleString()}</p>
-//           </li>
-//         ))}
-//       </ul>
-
-//       {/* Trades List */}
-//       <h2 className="text-xl font-semibold mt-6">Trades</h2>
-//       <ul className="space-y-2">
-//         {trades.map((trade) => (
-//           <li key={trade._id} className="border p-4 rounded shadow">
-//             <p>User: {trade.user.username}</p>
-//             <p>Event: {trade.event.name}</p>
-//             <p>Amount: ${trade.amount}</p>
-//             <p>Choice: {trade.choice}</p>
-//             <p>Status: <span className={trade.status === "won" ? "text-green-500" : "text-red-500"}>{trade.status}</span></p>
-//           </li>
-//         ))}
-//       </ul>
-//     </div>
-//   );
-// };
-
-// export default AdminDashboard;
-// import Layout from "@/components/Layout";
-
-// export default function AdminPanel() {
-//   return (
-//     <Layout>
-//       <h1 className="text-2xl font-bold">⚙ Admin Panel</h1>
-//       <p>Manage events and trades from here.</p>
-//     </Layout>
-//   );
-// }
-
-
-// import Layout from "@/components/Layout";
-// import styled from "styled-components";
-
-// const AdminContainer = styled.div`
-//   padding: 20px;
-// `;
-
-// const Title = styled.h1`
-//   font-size: 24px;
-//   font-weight: bold;
-//   margin-bottom: 20px;
-// `;
-
-// const Section = styled.div`
-//   background: #f4f4f4;
-//   padding: 15px;
-//   margin-bottom: 20px;
-//   border-radius: 5px;
-// `;
-
-// export default function AdminPanel() {
-//   return (
-//     <Layout>
-//       <AdminContainer>
-//         <Title>Admin Panel</Title>
-
-//         <Section>
-//           <h2>Manage Events</h2>
-//           <p>Here admins can create, edit, and delete events.</p>
-//         </Section>
-
-//         <Section>
-//           <h2>Manage Trades</h2>
-//           <p>Admins can approve or reject trade requests.</p>
-//         </Section>
-//       </AdminContainer>
-//     </Layout>
-//   );
-// }
-
 
 import { useEffect, useState } from "react";
-import Layout from "@/components/Layout";
-import { fetchAllTrades, updateTradeStatus } from "@/utils/api";
 import styled from "styled-components";
+import { useRouter } from "next/router";
+import Layout from "@/components/Layout";
 
-const AdminContainer = styled.div`
-  padding: 20px;
+const Container = styled.div`
+  padding: 10px;
+  background: ${(props) => props.theme.colors.background};
+  height:92vh;
+  overflow:auto;
 `;
 
-const Title = styled.h1`
-  font-size: 24px;
-  font-weight: bold;
+const TabNav = styled.div`
+  display: flex;
+  border-bottom: 2px solid #ccc;
   margin-bottom: 20px;
 `;
 
-const TradeTable = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-`;
-
-const TableHeader = styled.th`
-  background: #333;
-  color: white;
+const TabButton = styled.button`
+  flex: 1;
   padding: 10px;
-`;
+  border: none;
+  background: ${(props) => (props.active ? "#007bff" : "white")};
+  color: ${(props) => (props.active ? "white" : "#007bff")};
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s;
 
-const TableRow = styled.tr`
-  &:nth-child(even) {
-    background: #f2f2f2;
+  &:hover {
+    background: #007bff;
+    color: white;
   }
 `;
 
-const TableData = styled.td`
-  padding: 10px;
-  text-align: center;
+const Section = styled.div`
+  background: ${(props) => props.theme.colors.cardBackground};
+  padding: 20px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+  width:100%;
+  overflow:auto;
+`;
+const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+`;
+const Input = styled.input`
+  margin-top: 5px;
+  padding: 8px;
+  width: 100%;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+`;
+
+const Select = styled.select`
+  margin-top: 5px;
+  padding: 8px;
+  width: 100%;
+  border-radius: 5px;
+  border: 1px solid #ccc;
 `;
 
 const Button = styled.button`
-  padding: 5px 10px;
-  margin: 5px;
-  border: none;
-  cursor: pointer;
-  border-radius: 5px;
-  background: ${(props) => (props.type === "approve" ? "#28a745" : "#dc3545")};
+  margin-top: 10px;
+  background: ${(props) => props.theme.colors.primary};
   color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
 
   &:hover {
-    opacity: 0.8;
+    background: #0056b3;
   }
 `;
-
-export default function AdminPanel() {
+const DeleteButton = styled(Button)`
+  background: red;
+`;
+export default function AdminDashboard() {
+  const [activeTab, setActiveTab] = useState("createEvent");
   const [trades, setTrades] = useState([]);
+  const [eventData, setEventData] = useState({
+    eventId: "",
+    name: "",
+    sport: "",
+    odds: { home: 0, away: 0 },
+    startTime: new Date().toISOString().slice(0, 16),
+  });
+
+
+  const router = useRouter();
 
   useEffect(() => {
-    async function loadTrades() {
-      const data = await fetchAllTrades();
-      setTrades(data);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+      return;
     }
-    loadTrades();
+
+    fetch("http://localhost:5000/api/admin/trades", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+    .then((data) =>{ 
+      if (Array.isArray(data)) {
+        setTrades(data);  
+      } else {
+        setTrades([]); 
+      }}).catch((error) => {
+        console.error("Error fetching trades:", error);
+        setTrades([]);
+      });;
   }, []);
 
-  const handleUpdateStatus = async (tradeId, status) => {
-    const result = await updateTradeStatus(tradeId, status);
-    if (result) {
-      alert(`Trade ${status} successfully!`);
-      setTrades(trades.map((t) => (t._id === tradeId ? { ...t, status } : t)));
+  const handleCreateEvent = async (e) => {
+    e.preventDefault(); // Prevent page reload
+    try{
+    const token = localStorage.getItem("token");
+    console.log("eventData", eventData)
+    const formattedEventData = {
+      ...eventData,
+      startTime: new Date(eventData.startTime).toISOString(),
+    };
+    const response = await fetch("http://localhost:5000/api/admin/events", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(formattedEventData),
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      alert("Event created successfully!");
+      setEventData({
+        eventId: "",
+        name: "",
+        sport: "",
+        odds: { home: "", away: "" },
+        startTime: new Date().toISOString().slice(0, 16),
+      });
     } else {
-      alert("Failed to update trade status.");
+      alert(`Failed to create event: ${data.error}`);
     }
+  }catch(error){
+    console.error("Error creating event:", error.message);
+    alert(`Failed to create event: ${error.message}`);
+  }
   };
 
+  const updateTradeStatus = async (id, status) => {
+    console.log("status",status)
+    try{
+      const token = localStorage.getItem("token");
+      const response = await fetch(`http://localhost:5000/api/admin/trades/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status }),
+      });
+      console.log("response",response)
+      if (response.ok) {
+        alert("Event Updated successfully!");
+        setTrades((prevTrades) =>
+          prevTrades.map((trade) => (trade._id === id ? { ...trade, status } : trade))
+        );
+      } else {
+        alert("Failed to update trade.");
+      }
+    }catch(error){
+
+       console.log(error)
+       alert(`Failed to upadate trade: ${error.message}`);
+    }
+    
+  };
+
+  const deleteTrade = async (id) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`http://localhost:5000/api/admin/trades/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (response.ok) {
+      setTrades((prevTrades) => prevTrades.filter((trade) => trade._id !== id));
+    } else {
+      alert("Failed to delete trade.");
+    }
+  };
   return (
     <Layout>
-      <AdminContainer>
-        <Title>Manage Trades</Title>
-        <TradeTable>
-          <thead>
-            <tr>
-              <TableHeader>User</TableHeader>
-              <TableHeader>Event</TableHeader>
-              <TableHeader>Amount</TableHeader>
-              <TableHeader>Choice</TableHeader>
-              <TableHeader>Status</TableHeader>
-              <TableHeader>Actions</TableHeader>
-            </tr>
-          </thead>
-          <tbody>
-            {trades.length > 0 ? (
-              trades.map((trade) => (
-                <TableRow key={trade._id}>
-                  <TableData>{trade.user.username}</TableData>
-                  <TableData>{trade.event.name}</TableData>
-                  <TableData>${trade.amount}</TableData>
-                  <TableData>{trade.choice}</TableData>
-                  <TableData>{trade.status}</TableData>
-                  <TableData>
-                    {trade.status === "pending" && (
-                      <>
-                        <Button type="approve" onClick={() => handleUpdateStatus(trade._id, "won")}>Approve</Button>
-                        <Button type="reject" onClick={() => handleUpdateStatus(trade._id, "lost")}>Reject</Button>
-                      </>
-                    )}
-                  </TableData>
-                </TableRow>
-              ))
+      <Container>
+        <h1>Admin Panel</h1>
+        {/* Tab Navigation */}
+        <TabNav>
+          <TabButton active={activeTab === "createEvent"} onClick={() => setActiveTab("createEvent")}>
+            Create Event
+          </TabButton>
+          <TabButton active={activeTab === "manageTrades"} onClick={() => setActiveTab("manageTrades")}>
+            Manage Trades
+          </TabButton>
+        </TabNav>
+
+        {/* Tab Content */}
+        {activeTab === "createEvent" && (
+          <Section>
+            <h2>Create Event</h2>
+            <Form onSubmit={handleCreateEvent}>
+            <Input type="text" placeholder="Event ID" value={eventData.eventId} onChange={(e) => setEventData({ ...eventData, eventId: e.target.value })} />
+            <Input type="text" placeholder="Event Name" value={eventData.name} onChange={(e) => setEventData({ ...eventData, name: e.target.value })} />
+            <Input type="text" placeholder="Sport" value={eventData.sport} onChange={(e) => setEventData({ ...eventData, sport: e.target.value })} />
+            <Input
+              type="number"
+              placeholder="Home Odds"
+              value={eventData.odds.home}
+              onChange={(e) =>
+                setEventData({
+                  ...eventData,
+                  odds: { ...eventData.odds, home: parseFloat(e.target.value) || 0 },
+                })
+              }
+            />
+            <Input
+              type="number"
+              placeholder="Away Odds"
+              value={eventData.odds.away}
+              onChange={(e) =>
+                setEventData({
+                  ...eventData,
+                  odds: { ...eventData.odds, away: parseFloat(e.target.value) || 0 },
+                })
+              }
+            />
+
+            <Input
+              type="datetime-local"
+              value={eventData.startTime}
+              onChange={(e) => setEventData({ ...eventData, startTime: e.target.value })}
+            />
+            <Button type="submit">Create Event</Button>
+            </Form>
+          </Section>
+        )}
+
+        {activeTab === "manageTrades" && (
+          <Section>
+            <h2>Manage Trades</h2>
+            {trades.length === 0 ? (
+              <p>No trades available</p>
             ) : (
-              <TableRow>
-                <TableData colSpan="6">No trades available.</TableData>
-              </TableRow>
+              Array.isArray(trades) && trades.length > 0&& trades?.map((trade) => (
+                <div key={trade._id} style={{ marginBottom: "15px", padding: "10px", border: "1px solid #ccc", borderRadius: "5px" }}>
+                  <p>User: {trade.user ? trade.user.username : "Unknown User"}</p>
+                  <p>Event: {trade.event || "No Event"}</p>
+                  <p>Amount: ${trade.amount || 0}</p>
+                  <p>Choice: {trade.choice || "N/A"}</p>
+                  <p>Status: {trade.status || "Pending"}</p>
+                  <Select onChange={(e) => updateTradeStatus(trade._id, e.target.value)}>
+                  <option disabled selected>select status</option>
+                    <option value="pending">Pending</option>
+                    <option value="won">Won</option>
+                    <option value="lost">Lost</option>
+                  </Select>
+                  <DeleteButton onClick={() => deleteTrade(trade._id)}>
+              Delete Trade
+            </DeleteButton>
+                </div>
+              ))
             )}
-          </tbody>
-        </TradeTable>
-      </AdminContainer>
+          </Section>
+        )}
+      </Container>
     </Layout>
   );
 }
