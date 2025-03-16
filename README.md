@@ -1,34 +1,68 @@
-# Assignment-Backend-Development-for-Opinion-Trading-App
+# Opinion Trading App - Frontend
+
+## 📌 Overview
+This is the frontend for the Opinion Trading App, built using **Next.js** and **Styled Components**.
+
+## 🚀 Features
+- JWT-based authentication (User/Admin)
+- Dashboard to view live sports events
+- Users can place trades on live events
+- Admin panel to manage trades & events
+- WebSocket integration for real-time updates
+
+## 🛠 Tech Stack
+- **Frontend:** Next.js, React.js
+- **Styling:** Styled Components
+- **State Management:** useState, useEffect
+- **WebSocket:** Socket.io-client
+- **Deployment:** Vercel
+
+## 📡 Pages & Routes
+| Path       | Description            |
+|-----------|------------------------|
+| `/`       | Home Page              |
+| `/login`  | User/Admin Login       |
+| `/dashboard` | View live events & place trades |
+| `/admin`  | Admin Panel (Manage trades & events) |
+
+## 📦 Installation
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/your-repo/frontend.git
+   cd frontend
+
+# Opinion Trading App - Frontend
+
+## 📌 Overview
+This is the frontend for the Opinion Trading App, built using **Next.js** and **Styled Components**.
+
+## 🚀 Features
+- JWT-based authentication (User/Admin)
+- Dashboard to view live sports events
+- Users can place trades on live events
+- Admin panel to manage trades & events
+- WebSocket integration for real-time updates
+
+## 🛠 Tech Stack
+- **Frontend:** Next.js, React.js
+- **Styling:** Styled Components
+- **State Management:** useState, useEffect
+- **WebSocket:** Socket.io-client
+- **Deployment:** Vercel
+
+## 📡 Pages & Routes
+| Path       | Description            |
+|-----------|------------------------|
+| `/`       | Home Page              |
+| `/login`  | User/Admin Login       |
+| `/dashboard` | View live events & place trades |
+| `/admin`  | Admin Panel (Manage trades & events) |
+
+## 📦 Installation
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/your-repo/frontend.git
+   cd frontend
 
 
-import { useEffect, useState } from 'react';
-import io from 'socket.io-client';
 
-const socket = io('http://localhost:5000'); // Update with backend URL when deployed
-
-const LiveEvents = () => {
-  const [events, setEvents] = useState([]);
-
-  useEffect(() => {
-    socket.on('liveEvents', (data) => {
-      setEvents(data);
-    });
-
-    return () => {
-      socket.off('liveEvents'); // Cleanup on unmount
-    };
-  }, []);
-
-  return (
-    <div>
-      <h2>Live Events</h2>
-      <ul>
-        {events.map(event => (
-          <li key={event.eventId}>{event.name} - {event.odds.home} / {event.odds.away}</li>
-        ))}
-      </ul>
-    </div>
-  );
-};
-
-export default LiveEvents;
