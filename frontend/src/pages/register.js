@@ -1,125 +1,9 @@
-// import { useState } from "react";
-// import { useRouter } from "next/router";
-// import { api } from "@/utils/api";
-
-// const Register = () => {
-//   const [username, setUsername] = useState("");
-//   const [email, setEmail] = useState("");
-//   const [password, setPassword] = useState("");
-//   const [error, setError] = useState("");
-//   const router = useRouter();
-
-//   const handleRegister = async (e) => {
-//     e.preventDefault();
-//     try {
-//       await api.post("/auth/register", { username, email, password });
-//       router.push("/login");
-//     } catch (err) {
-//       setError("Registration failed");
-//     }
-//   };
-
-//   return (
-//     <div className="flex justify-center items-center h-screen">
-//       <form className="bg-white p-6 rounded shadow-md w-96" onSubmit={handleRegister}>
-//         <h2 className="text-xl mb-4">Register</h2>
-//         {error && <p className="text-red-500">{error}</p>}
-//         <input
-//           type="text"
-//           placeholder="Username"
-//           className="w-full p-2 mb-3 border rounded"
-//           value={username}
-//           onChange={(e) => setUsername(e.target.value)}
-//         />
-//         <input
-//           type="email"
-//           placeholder="Email"
-//           className="w-full p-2 mb-3 border rounded"
-//           value={email}
-//           onChange={(e) => setEmail(e.target.value)}
-//         />
-//         <input
-//           type="password"
-//           placeholder="Password"
-//           className="w-full p-2 mb-3 border rounded"
-//           value={password}
-//           onChange={(e) => setPassword(e.target.value)}
-//         />
-//         <button type="submit" className="w-full bg-green-500 text-white p-2 rounded">
-//           Register
-//         </button>
-//       </form>
-//     </div>
-//   );
-// };
-
-// export default Register;
-// import { useState } from "react";
-// import { useRouter } from "next/router";
-// import styled from "styled-components";
-
-// const Container = styled.div`
-//   display: flex;
-//   justify-content: center;
-//   align-items: center;
-//   height: 100vh;
-//   background: #f4f4f4;
-// `;
-
-// const Form = styled.form`
-//   background: white;
-//   padding: 20px;
-//   border-radius: 8px;
-//   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-//   width: 300px;
-// `;
-
-// const Input = styled.input`
-//   width: 100%;
-//   padding: 10px;
-//   margin: 10px 0;
-//   border: 1px solid #ddd;
-//   border-radius: 5px;
-// `;
-
-// const Button = styled.button`
-//   width: 100%;
-//   padding: 10px;
-//   background: #28a745;
-//   color: white;
-//   border: none;
-//   border-radius: 5px;
-//   cursor: pointer;
-// `;
-
-// export default function Register() {
-//   const [email, setEmail] = useState("");
-//   const [password, setPassword] = useState("");
-//   const router = useRouter();
-
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-//     console.log({ email, password });
-//     router.push("/dashboard");
-//   };
-
-//   return (
-//     <Container>
-//       <Form onSubmit={handleSubmit}>
-//         <h2>Register</h2>
-//         <Input type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} required />
-//         <Input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} required />
-//         <Button type="submit">Register</Button>
-//       </Form>
-//     </Container>
-//   );
-// }
 
 import { useState } from "react";
 import { useRouter } from "next/router";
 import styled from "styled-components";
-import axios from "axios";
 import Layout from "@/components/Layout";
+import { baseURL } from "@/utils/api";
 
 const Container = styled.div`
   display: flex;
@@ -153,6 +37,7 @@ const Button = styled.button`
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  margin: 5px;
 `;
 
 const ErrorText = styled.p`
@@ -161,39 +46,72 @@ const ErrorText = styled.p`
 `;
 
 export default function Register() {
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
-  const [username, setUsername] = useState("");
+
   const handleRegister = async (e) => {
     e.preventDefault();
+    setError(""); // Clear previous errors
+
     try {
-      const response = await fetch("http://localhost:5000/api/auth/register", {
+      const response = await fetch(`${baseURL}api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password }),
       });
 
-      if (!response.ok) throw new Error("Registration failed");
+      const data = await response.json(); 
 
-      router.push("/login"); // Redirect to login after success
-    } catch (error) {
-      console.error("Error registering:", error);
+      if (!response.ok) {
+        setError(data.error || "Registration failed");
+        return 
+      
+      }
+
+      alert("Registration successful!");
+      router.push("/login"); 
+    } catch (err) {
+      setError(err.message);
+      console.error("Error registering:", err);
     }
   };
+
   return (
     <Layout>
- <Container>
-      <Form onSubmit={handleRegister}>
-        <h2>Register</h2>
-        {error && <ErrorText>{error}</ErrorText>}
-        <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        <Button type="submit">Register</Button>
-      </Form>
-    </Container>
+      <Container>
+        <Form onSubmit={handleRegister}>
+          <h2>Register</h2>
+          {error && <ErrorText>{error}</ErrorText>}
+          <Input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+          <Input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <Input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <Button type="submit">Register</Button>
+          <Button onClick={()=>{
+            router.push('/login');
+          }} type="submit">Go to Login </Button>
+        </Form>
+      </Container>
     </Layout>
-   
   );
 }

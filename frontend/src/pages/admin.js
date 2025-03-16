@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useRouter } from "next/router";
 import Layout from "@/components/Layout";
+import { baseURL } from "@/utils/api";
 
 const Container = styled.div`
   padding: 10px;
@@ -84,6 +85,7 @@ const DeleteButton = styled(Button)`
   background: red;
 `;
 export default function AdminDashboard() {
+  const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("createEvent");
   const [trades, setTrades] = useState([]);
   const [eventData, setEventData] = useState({
@@ -104,16 +106,17 @@ export default function AdminDashboard() {
       return;
     }
 
-    fetch("http://localhost:5000/api/admin/trades", {
+    fetch(`${baseURL}api/admin/trades`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
-    .then((data) =>{ 
-      if (Array.isArray(data)) {
-        setTrades(data);  
-      } else {
-        setTrades([]); 
-      }}).catch((error) => {
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setTrades(data);
+        } else {
+          setTrades([]);
+        }
+      }).catch((error) => {
         console.error("Error fetching trades:", error);
         setTrades([]);
       });;
@@ -121,46 +124,55 @@ export default function AdminDashboard() {
 
   const handleCreateEvent = async (e) => {
     e.preventDefault(); // Prevent page reload
-    try{
-    const token = localStorage.getItem("token");
-    console.log("eventData", eventData)
-    const formattedEventData = {
-      ...eventData,
-      startTime: new Date(eventData.startTime).toISOString(),
-    };
-    const response = await fetch("http://localhost:5000/api/admin/events", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(formattedEventData),
-    });
-
-    const data = await response.json();
-    if (response.ok) {
-      alert("Event created successfully!");
-      setEventData({
-        eventId: "",
-        name: "",
-        sport: "",
-        odds: { home: "", away: "" },
-        startTime: new Date().toISOString().slice(0, 16),
+    try {
+      const token = localStorage.getItem("token");
+      console.log("eventData", eventData)
+      const formattedEventData = {
+        ...eventData,
+        startTime: new Date(eventData.startTime).toISOString(),
+      };
+      setError('')
+      const response = await fetch(`${baseURL}api/admin/events`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formattedEventData),
       });
-    } else {
-      alert(`Failed to create event: ${data.error}`);
+
+      const data = await response.json();
+      if (response.ok) {
+        alert("Event created successfully!");
+        setEventData({
+          eventId: "",
+          name: "",
+          sport: "",
+          odds: { home: "", away: "" },
+          startTime: new Date().toISOString().slice(0, 16),
+        });
+      } else {
+        setError(`Failed to create event: ${data.error}`)
+        setEventData({
+          eventId: "",
+          name: "",
+          sport: "",
+          odds: { home: "", away: "" },
+          startTime: new Date().toISOString().slice(0, 16),
+        });
+      }
+    } catch (error) {
+      console.error("Error creating event:", error.message);
+      setError(`Failed to create event: ${data.error}`)
     }
-  }catch(error){
-    console.error("Error creating event:", error.message);
-    alert(`Failed to create event: ${error.message}`);
-  }
   };
 
   const updateTradeStatus = async (id, status) => {
-    console.log("status",status)
-    try{
+    console.log("status", status)
+    try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:5000/api/admin/trades/${id}`, {
+      setError('')
+      const response = await fetch(`${baseURL}api/admin/trades/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -168,26 +180,26 @@ export default function AdminDashboard() {
         },
         body: JSON.stringify({ status }),
       });
-      console.log("response",response)
+      console.log("response", response)
       if (response.ok) {
         alert("Event Updated successfully!");
         setTrades((prevTrades) =>
           prevTrades.map((trade) => (trade._id === id ? { ...trade, status } : trade))
         );
       } else {
-        alert("Failed to update trade.");
+        setError(`Failed to create event: ${data.error} or Failed to update trade.`)
       }
-    }catch(error){
-
-       console.log(error)
-       alert(`Failed to upadate trade: ${error.message}`);
+    } catch (error) {
+      console.log(error)
+      setError(`Failed to upadate trade: ${error.message}`)
     }
-    
+
   };
 
   const deleteTrade = async (id) => {
     const token = localStorage.getItem("token");
-    const response = await fetch(`http://localhost:5000/api/admin/trades/${id}`, {
+    setError('')
+    const response = await fetch(`${baseURL}api/admin/trades/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -195,19 +207,26 @@ export default function AdminDashboard() {
     if (response.ok) {
       setTrades((prevTrades) => prevTrades.filter((trade) => trade._id !== id));
     } else {
-      alert("Failed to delete trade.");
+      setError("Failed to delete trade.")
     }
   };
   return (
     <Layout>
       <Container>
         <h1>Admin Panel</h1>
+
         {/* Tab Navigation */}
         <TabNav>
-          <TabButton active={activeTab === "createEvent"} onClick={() => setActiveTab("createEvent")}>
+          <TabButton active={activeTab === "createEvent"} onClick={() => {
+            setActiveTab("createEvent")
+            setError('')
+          }}>
             Create Event
           </TabButton>
-          <TabButton active={activeTab === "manageTrades"} onClick={() => setActiveTab("manageTrades")}>
+          <TabButton active={activeTab === "manageTrades"} onClick={() => {
+            setActiveTab("manageTrades")
+            setError('')
+          }}>
             Manage Trades
           </TabButton>
         </TabNav>
@@ -216,39 +235,40 @@ export default function AdminDashboard() {
         {activeTab === "createEvent" && (
           <Section>
             <h2>Create Event</h2>
+            {error && <p style={{ color: "red" }}>{error}</p>}
             <Form onSubmit={handleCreateEvent}>
-            <Input type="text" placeholder="Event ID" value={eventData.eventId} onChange={(e) => setEventData({ ...eventData, eventId: e.target.value })} />
-            <Input type="text" placeholder="Event Name" value={eventData.name} onChange={(e) => setEventData({ ...eventData, name: e.target.value })} />
-            <Input type="text" placeholder="Sport" value={eventData.sport} onChange={(e) => setEventData({ ...eventData, sport: e.target.value })} />
-            <Input
-              type="number"
-              placeholder="Home Odds"
-              value={eventData.odds.home}
-              onChange={(e) =>
-                setEventData({
-                  ...eventData,
-                  odds: { ...eventData.odds, home: parseFloat(e.target.value) || 0 },
-                })
-              }
-            />
-            <Input
-              type="number"
-              placeholder="Away Odds"
-              value={eventData.odds.away}
-              onChange={(e) =>
-                setEventData({
-                  ...eventData,
-                  odds: { ...eventData.odds, away: parseFloat(e.target.value) || 0 },
-                })
-              }
-            />
+              <Input type="text" placeholder="Event ID" value={eventData.eventId} onChange={(e) => setEventData({ ...eventData, eventId: e.target.value })} />
+              <Input type="text" placeholder="Event Name" value={eventData.name} onChange={(e) => setEventData({ ...eventData, name: e.target.value })} />
+              <Input type="text" placeholder="Sport" value={eventData.sport} onChange={(e) => setEventData({ ...eventData, sport: e.target.value })} />
+              <Input
+                type="number"
+                placeholder="Home Odds"
+                value={eventData.odds.home}
+                onChange={(e) =>
+                  setEventData({
+                    ...eventData,
+                    odds: { ...eventData.odds, home: parseFloat(e.target.value) || 0 },
+                  })
+                }
+              />
+              <Input
+                type="number"
+                placeholder="Away Odds"
+                value={eventData.odds.away}
+                onChange={(e) =>
+                  setEventData({
+                    ...eventData,
+                    odds: { ...eventData.odds, away: parseFloat(e.target.value) || 0 },
+                  })
+                }
+              />
 
-            <Input
-              type="datetime-local"
-              value={eventData.startTime}
-              onChange={(e) => setEventData({ ...eventData, startTime: e.target.value })}
-            />
-            <Button type="submit">Create Event</Button>
+              <Input
+                type="datetime-local"
+                value={eventData.startTime}
+                onChange={(e) => setEventData({ ...eventData, startTime: e.target.value })}
+              />
+              <Button type="submit">Create Event</Button>
             </Form>
           </Section>
         )}
@@ -256,10 +276,11 @@ export default function AdminDashboard() {
         {activeTab === "manageTrades" && (
           <Section>
             <h2>Manage Trades</h2>
+            {error && <p style={{ color: "red" }}>{error}</p>}
             {trades.length === 0 ? (
               <p>No trades available</p>
             ) : (
-              Array.isArray(trades) && trades.length > 0&& trades?.map((trade) => (
+              Array.isArray(trades) && trades.length > 0 && trades?.map((trade) => (
                 <div key={trade._id} style={{ marginBottom: "15px", padding: "10px", border: "1px solid #ccc", borderRadius: "5px" }}>
                   <p>User: {trade.user ? trade.user.username : "Unknown User"}</p>
                   <p>Event: {trade.event || "No Event"}</p>
@@ -267,14 +288,14 @@ export default function AdminDashboard() {
                   <p>Choice: {trade.choice || "N/A"}</p>
                   <p>Status: {trade.status || "Pending"}</p>
                   <Select onChange={(e) => updateTradeStatus(trade._id, e.target.value)}>
-                  <option disabled selected>select status</option>
+                    <option disabled selected>select status</option>
                     <option value="pending">Pending</option>
                     <option value="won">Won</option>
                     <option value="lost">Lost</option>
                   </Select>
                   <DeleteButton onClick={() => deleteTrade(trade._id)}>
-              Delete Trade
-            </DeleteButton>
+                    Delete Trade
+                  </DeleteButton>
                 </div>
               ))
             )}

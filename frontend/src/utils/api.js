@@ -15,8 +15,8 @@
 //   baseURL: API_BASE_URL,
 //   headers: { "Content-Type": "application/json" },
 // });
+ export const baseURL =`https://assignment-backend-development-for.onrender.com/`||`http://localhost:5000/`
 const API_BASE_URL = "http://localhost:5000/api"; // Update with your backend URL
-
 export async function fetchLiveEvents() {
   try {
     const response = await fetch(`${API_BASE_URL}/events`);
@@ -52,7 +52,7 @@ export async function placeTrade(eventId, amount, choice) {
   export async function fetchAllTrades() {
     try {
       const token = localStorage.getItem("token"); // Ensure admin is authenticated
-      const response = await fetch(`http://localhost:5000/api/admin/trades`, {
+      const response = await fetch(`${baseURL}api/admin/trades`, {
         headers: { Authorization: `Bearer ${token}` },
       });
   

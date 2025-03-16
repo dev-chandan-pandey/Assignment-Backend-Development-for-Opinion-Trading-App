@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import styled from "styled-components";
 import Layout from "@/components/Layout";
+import { baseURL } from "@/utils/api";
 
 const Container = styled.div`
 margin:0px;
@@ -100,119 +101,6 @@ const TradeButton = styled.button`
   }
 `;
 
-// export default function Dashboard() {
-//   const router = useRouter();
-//   const [trades, setTrades] = useState([]);
-//   const [error, setError] = useState("");
-//   const [events, setEvents] = useState([]);
-//   const [selectedEvent, setSelectedEvent] = useState(null);
-//   const [amount, setAmount] = useState("");
-//   const [choice, setChoice] = useState("home");
-//   useEffect(() => {
-//     const token = localStorage.getItem("token");
-//     console.log(token,'token');
-//     if (!token) {
-//       router.push("/login");
-//       return;
-//     }
-
-//     const fetchTrades = async () => {
-//       try {
-//         const response = await fetch("http://localhost:5000/api/admin/trades", {
-//           headers: { Authorization: `Bearer ${token}` },
-//         });
-
-//         // if (!response.ok) throw new Error("Failed to fetch trades");
-
-//         const data = await response.json();
-//         console.log(data,"data")
-//         setTrades(data);
-//       } catch (err) {
-//         setError("Error loading trades.");
-//       }
-//     };
-
-//     fetchTrades();
-//     fetch("http://localhost:5000/api/events", {
-//       headers: { Authorization: `Bearer ${token}` },
-//     })
-//       .then((res) => res.json())
-//       .then((data) => setEvents(data));
-
-//   }, []);
-
-//   const handleLogout = () => {
-//     localStorage.removeItem("token");
-//     router.push("/login");
-//   };
-//   const handleTrade = async () => {
-//     const token = localStorage.getItem("token");
-//     if (!selectedEvent || !amount) {
-//       alert("Please select an event and enter an amount.");
-//       return;
-//     }
-
-//     const response = await fetch("http://localhost:5000/api/trades", {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//         Authorization: `Bearer ${token}`,
-//       },
-//       body: JSON.stringify({
-//         eventId: selectedEvent,
-//         amount: Number(amount),
-//         choice,
-//       }),
-//     });
-
-//     const data = await response.json();
-//     console.log("response",response)
-//     if (response.ok) {
-//       alert("Trade placed successfully!");
-//       setAmount(""); // Clear input after placing trade
-//     } else {
-//       alert(`Trade failed: ${data.error}`);
-//     }
-//   };
-//   return (
-//     <Layout>
-//  <Container>
-
-//  <h1>Live Events</h1>
-//  <ButtonContainer>
-//     {selectedEvent && <TradeButton onClick={handleTrade}>Place Trade</TradeButton>}
-//   </ButtonContainer>
-//    <EventList>
-//    {events.length === 0 ? <p>No events available</p> : events.map((event) => (
-//         <EventCard key={event.eventId}>
-//           <h3>{event.name}</h3>
-//             <p>Sport: {event.sport}</p>
-//             <p>Odds: Home {event.odds.home} - Away {event.odds.away}</p>
-//             <Select onChange={(e) => setChoice(e.target.value)}>
-//               <option value="home">Home</option>
-//               <option value="away">Away</option>
-//             </Select>
-//             <Input
-//               type="number"
-//               placeholder="Enter amount"
-//               value={amount}
-//               onChange={(e) => setAmount(e.target.value)}
-//             />
-//             <Button onClick={() => setSelectedEvent(event.eventId)}>
-//               Select Event
-//             </Button>
-//         </EventCard>
-//       ))}
-      
-//    </EventList>
-//     {/* <Button onClick={handleLogout}>Logout</Button> */}
-//     </Container>
-//     </Layout>
-   
-//   );
-// }
-
-
 export default function Dashboard() {
   const router = useRouter();
   const [trades, setTrades] = useState([]);
@@ -231,7 +119,7 @@ export default function Dashboard() {
       }
 
       try {
-        const response = await fetch("http://localhost:5000/api/events", {
+        const response = await fetch(`${baseURL}api/events`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -261,7 +149,7 @@ export default function Dashboard() {
     const token = localStorage.getItem("token");
 
     try {
-      const response = await fetch("http://localhost:5000/api/trades", {
+      const response = await fetch(`${baseURL}api/trades`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -296,10 +184,10 @@ export default function Dashboard() {
       <Container>
         <h1>Live Events</h1>
         {error && <p style={{ color: "red" }}>{error}</p>}
-      
-    <ButtonContainer>
-    {selectedEvent && <TradeButton onClick={handleTrade}>Place Trade</TradeButton>}
-  </ButtonContainer>
+
+        <ButtonContainer>
+          {selectedEvent && <TradeButton onClick={handleTrade}>Place Trade</TradeButton>}
+        </ButtonContainer>
         <EventList>
           {events.length === 0 ? (
             <p>No events available</p>
@@ -312,7 +200,8 @@ export default function Dashboard() {
                     name="selectedEvent"
                     value={event.eventId}
                     checked={selectedEvent === event.eventId}
-                    onChange={() =>{ setSelectedEvent(event.eventId)
+                    onChange={() => {
+                      setSelectedEvent(event.eventId)
                       setError('')
                     }}
                   />
